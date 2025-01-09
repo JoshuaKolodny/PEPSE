@@ -1,6 +1,7 @@
 package pepse.world;
 
 import danogl.GameObject;
+import danogl.components.CoordinateSpace;
 import danogl.gui.rendering.Renderable;
 import danogl.gui.rendering.TextRenderable;
 import danogl.util.Vector2;
@@ -16,6 +17,7 @@ public class EnergyDisplay extends GameObject {
         this.energyProvider = energyProvider;
         this.textRenderable = new TextRenderable(Integer.toString((int) energyProvider.getCurrentEnergy()));
         this.renderer().setRenderable(textRenderable);
+        this.setCoordinateSpace(CoordinateSpace.CAMERA_COORDINATES);
     }
 
     @Override
