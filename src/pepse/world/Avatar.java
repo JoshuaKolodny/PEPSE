@@ -1,23 +1,26 @@
 package pepse.world;
 
 import danogl.GameObject;
+import danogl.collisions.Collision;
+import danogl.components.ScheduledTask;
 import danogl.gui.ImageReader;
 import danogl.gui.UserInputListener;
 import danogl.gui.rendering.AnimationRenderable;
-import danogl.gui.rendering.Renderable;
 import danogl.util.Vector2;
 import pepse.constants.Constants;
-import pepse.interfaces.EnergyProvider;
+import pepse.interfaces.JumpObserver;
+import pepse.world.trees.Fruit;
 
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Avatar extends GameObject {
     // Constants
+    public static final Vector2 SIZE = Vector2.ONES.mult(45);
     private static final float VELOCITY_X = 400;
     private static final float VELOCITY_Y = -650;
-    private static final float GRAVITY = 1000;
     private static final String AVATAR_IMAGE = "src/assets/idle_0.png";
-
     // Energy
     private static final float MAX_ENERGY = 100;
     private static final float MOVE_REDUCTION = -0.3f;
@@ -47,16 +50,18 @@ public class Avatar extends GameObject {
             "src/assets/idle_3.png"
     };
     private static final double TIME_BETWEEN_ANIMATIONS = 0.1;
+    private static final float FRUIT_ENERGY = 10;
 
     private final UserInputListener inputListener;
     private final ImageReader imageReader;
     private float energy;
     private AnimationTypes currentAnimation;
+    private final List<JumpObserver> jumpObservers = new ArrayList<>();
 
     public Avatar(Vector2 topLeftCorner, UserInputListener inputListener, ImageReader imageReader) {
-        super(topLeftCorner, Constants.AVATAR_DIMENSIONS, imageReader.readImage(AVATAR_IMAGE, true));
+        super(topLeftCorner, SIZE, imageReader.readImage(AVATAR_IMAGE, true));
         physics().preventIntersectionsFromDirection(Vector2.ZERO);
-        transform().setAccelerationY(GRAVITY);
+        transform().setAccelerationY(Constants.GRAVITY);
         this.inputListener = inputListener;
         this.imageReader = imageReader;
         energy = MAX_ENERGY;
@@ -64,6 +69,20 @@ public class Avatar extends GameObject {
         renderer().setRenderable(new AnimationRenderable(STILL_PATHS, imageReader,
                 true, TIME_BETWEEN_ANIMATIONS));
     }
+
+    @Override
+    public void onCollisionEnter(GameObject other, Collision collision) {
+        super.onCollisionEnter(other, collision);
+        if(other.getTag().equals(Constants.GROUND_TAG)) {
+            this.transform().setVelocityY(0);
+        } else if (other.getTag().equals(Constants.FRUIT_TAG)) {
+            updateEnergy(FRUIT_ENERGY);
+            Fruit fruit = (Fruit) other;
+            fruit.deactivate();
+            new ScheduledTask(fruit, 30, false, fruit::activate);
+            }
+    }
+
 
     @Override
     public void update(float deltaTime) {
@@ -74,11 +93,14 @@ public class Avatar extends GameObject {
         handleJump();
         handleRestingEnergy();
 
-        // 2. Boundaries
-        clampHorizontalPosition();
-
         // 3. Animation
         updateAnimation();
+    }
+
+    private void notifyJumpObservers(){
+        for (JumpObserver jumpObserver: jumpObservers){
+            jumpObserver.updateJump();
+        }
     }
 
     private void handleHorizontalMovement() {
@@ -113,6 +135,7 @@ public class Avatar extends GameObject {
     private void handleJump() {
         if (inputListener.isKeyPressed(KeyEvent.VK_SPACE) && getVelocity().y() == 0
                 && energy >= -JUMP_REDUCTION) {
+            notifyJumpObservers();
             updateEnergy(JUMP_REDUCTION);
             transform().setVelocityY(VELOCITY_Y);
         }
@@ -121,12 +144,6 @@ public class Avatar extends GameObject {
     private void handleRestingEnergy() {
         if (getVelocity().equals(Vector2.ZERO)) {
             updateEnergy(RESTING_ENERGY);
-        }
-    }
-
-    private void clampHorizontalPosition() {
-        if (getTopLeftCorner().x() < 0) {
-            setTopLeftCorner(new Vector2(0, getTopLeftCorner().y()));
         }
     }
 
@@ -169,4 +186,7 @@ public class Avatar extends GameObject {
         return energy;
     }
 
+    public void addJumpObserver(JumpObserver gameObject) {
+        jumpObservers.add(gameObject);
+    }
 }
