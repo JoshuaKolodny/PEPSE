@@ -2,25 +2,33 @@ package pepse.world;
 
 import danogl.GameObject;
 import danogl.collisions.Collision;
-import danogl.components.ScheduledTask;
 import danogl.gui.ImageReader;
 import danogl.gui.UserInputListener;
 import danogl.gui.rendering.AnimationRenderable;
 import danogl.util.Vector2;
 import pepse.constants.Constants;
 import pepse.interfaces.JumpObserver;
-import pepse.world.trees.Fruit;
 
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the player's avatar with basic movement, jumping, and energy mechanics.
+ * <p>Handles collisions, animations, and energy state changes (e.g., collecting fruit).</p>
+ *
+ * <p>Includes a set of {@link JumpObserver} objects to notify when a jump occurs.</p>
+ *
+ * @author
+ *     Joshua Kolodny, Itamar Lev Ari
+ */
 public class Avatar extends GameObject {
     // Constants
     public static final Vector2 SIZE = Vector2.ONES.mult(45);
     private static final float VELOCITY_X = 400;
     private static final float VELOCITY_Y = -650;
     private static final String AVATAR_IMAGE = "src/assets/idle_0.png";
+
     // Energy
     private static final float MAX_ENERGY = 100;
     private static final float MOVE_REDUCTION = -0.3f;
@@ -58,6 +66,13 @@ public class Avatar extends GameObject {
     private AnimationTypes currentAnimation;
     private final List<JumpObserver> jumpObservers = new ArrayList<>();
 
+    /**
+     * Constructs an avatar with position, user input listener, and image reading capabilities.
+     *
+     * @param topLeftCorner  Initial avatar location.
+     * @param inputListener  Provides keyboard and mouse inputs.
+     * @param imageReader    Loads images for animations.
+     */
     public Avatar(Vector2 topLeftCorner, UserInputListener inputListener, ImageReader imageReader) {
         super(topLeftCorner, SIZE, imageReader.readImage(AVATAR_IMAGE, true));
         physics().preventIntersectionsFromDirection(Vector2.ZERO);
@@ -68,70 +83,70 @@ public class Avatar extends GameObject {
         currentAnimation = AnimationTypes.STILL;
         renderer().setRenderable(new AnimationRenderable(STILL_PATHS, imageReader,
                 true, TIME_BETWEEN_ANIMATIONS));
+        this.setTag(Constants.AVATAR_TAG);
     }
 
+    /**
+     * Handles collisions with blocks (resets vertical velocity) and fruits (increases energy).
+     */
     @Override
     public void onCollisionEnter(GameObject other, Collision collision) {
         super.onCollisionEnter(other, collision);
-        if(other.getTag().equals(Constants.GROUND_TAG)) {
+        if (other.getTag().equals(Constants.BLOCK_TAG)) {
             this.transform().setVelocityY(0);
         } else if (other.getTag().equals(Constants.FRUIT_TAG)) {
             updateEnergy(FRUIT_ENERGY);
-            Fruit fruit = (Fruit) other;
-            fruit.deactivate();
-            new ScheduledTask(fruit, 30, false, fruit::activate);
-            }
+        }
     }
 
-
+    /**
+     * Handles input-based movement, jumping, resting, and animating the avatar each frame.
+     */
     @Override
     public void update(float deltaTime) {
         super.update(deltaTime);
-
-        // 1. Movement (horizontal, jump, resting)
         handleHorizontalMovement();
         handleJump();
         handleRestingEnergy();
-
-        // 3. Animation
         updateAnimation();
     }
 
-    private void notifyJumpObservers(){
-        for (JumpObserver jumpObserver: jumpObservers){
+    /**
+     * Notifies observers that a jump has occurred.
+     */
+    private void notifyJumpObservers() {
+        for (JumpObserver jumpObserver : jumpObservers) {
             jumpObserver.updateJump();
         }
     }
 
+    /**
+     * Moves the avatar horizontally based on input, reducing energy when moving.
+     */
     private void handleHorizontalMovement() {
         float xVel = 0;
 
-        // Check if the player wants to move left or right, but only if energy allows
-        boolean movingLeft  = inputListener.isKeyPressed(KeyEvent.VK_LEFT)  && energy >= MIN_ENERGY_TO_MOVE;
+        boolean movingLeft = inputListener.isKeyPressed(KeyEvent.VK_LEFT) && energy >= MIN_ENERGY_TO_MOVE;
         boolean movingRight = inputListener.isKeyPressed(KeyEvent.VK_RIGHT) && energy >= MIN_ENERGY_TO_MOVE;
 
-        // Adjust the X velocity
         if (movingLeft) {
             xVel -= VELOCITY_X;
-            // Flip horizontally when moving left
             renderer().setIsFlippedHorizontally(true);
         }
         if (movingRight) {
             xVel += VELOCITY_X;
-            // No flip (or flip back) when moving right
             renderer().setIsFlippedHorizontally(false);
         }
 
-        // Set the computed velocity
         transform().setVelocityX(xVel);
-
-        // Reduce energy if actually moving horizontally
         if (xVel != 0) {
             updateEnergy(MOVE_REDUCTION);
         }
     }
 
-
+    /**
+     * Allows the avatar to jump if energy and grounded conditions are met.
+     */
     private void handleJump() {
         if (inputListener.isKeyPressed(KeyEvent.VK_SPACE) && getVelocity().y() == 0
                 && energy >= -JUMP_REDUCTION) {
@@ -141,12 +156,18 @@ public class Avatar extends GameObject {
         }
     }
 
+    /**
+     * Replenishes a small amount of energy when the avatar is idle.
+     */
     private void handleRestingEnergy() {
         if (getVelocity().equals(Vector2.ZERO)) {
             updateEnergy(RESTING_ENERGY);
         }
     }
 
+    /**
+     * Chooses and sets an animation based on the avatar's current motion.
+     */
     private void updateAnimation() {
         Vector2 velocity = getVelocity();
 
@@ -164,8 +185,6 @@ public class Avatar extends GameObject {
     }
 
     private boolean isJumping(Vector2 velocity) {
-        // Running + jumping could combine in some games,
-        // but here we check specifically for vertical movement w/o horizontal
         return (velocity.y() != 0) && (velocity.x() == 0) && (currentAnimation != AnimationTypes.JUMPING);
     }
 
@@ -173,19 +192,36 @@ public class Avatar extends GameObject {
         return velocity.equals(Vector2.ZERO) && currentAnimation != AnimationTypes.STILL;
     }
 
+    /**
+     * Updates the current animation renderable based on the new animation state.
+     */
     private void setAnimation(AnimationTypes newAnimation, String[] paths) {
         currentAnimation = newAnimation;
-        renderer().setRenderable(new AnimationRenderable(paths, imageReader, true, TIME_BETWEEN_ANIMATIONS));
+        renderer().setRenderable(new AnimationRenderable(paths, imageReader, true,
+                TIME_BETWEEN_ANIMATIONS));
     }
 
+    /**
+     * Adjusts the avatar's energy within allowable bounds.
+     *
+     * @param delta Change in energy (can be positive or negative).
+     */
     public void updateEnergy(float delta) {
         energy = Math.max(0, Math.min(MAX_ENERGY, energy + delta));
     }
 
+    /**
+     * Returns the current energy level of the avatar.
+     */
     public float getEnergy() {
         return energy;
     }
 
+    /**
+     * Subscribes a {@link JumpObserver} to receive jump notifications.
+     *
+     * @param gameObject The observer to be added.
+     */
     public void addJumpObserver(JumpObserver gameObject) {
         jumpObservers.add(gameObject);
     }

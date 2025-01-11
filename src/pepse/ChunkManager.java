@@ -1,12 +1,7 @@
-////////////////////////////////////////
-// ChunkManager.java
-////////////////////////////////////////
-
 package pepse;
 
 import danogl.GameObject;
 import danogl.collisions.Layer;
-import danogl.gui.rendering.Renderable;
 import pepse.world.Block;
 import pepse.world.Terrain;
 import pepse.world.trees.Flora;
@@ -115,7 +110,4 @@ public class ChunkManager {
         chunkObjectsMap.put(chunkIndex, objectsInThisChunk);
     }
 
-    public static int getChunkWidth() {
-        return CHUNK_WIDTH;
-    }
 }
