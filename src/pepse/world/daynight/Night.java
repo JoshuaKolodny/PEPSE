@@ -32,7 +32,8 @@ public class Night {
      * Creates a night overlay {@link GameObject} that transitions its opacity over a specified cycle length.
      *
      * @param windowDimensions the dimensions of the game window
-     * @param cycleLength the duration (in seconds or frames, depending on the engine) for a full day-night cycle
+     * @param cycleLength the duration (in seconds or frames, depending on the engine) for a full
+     *                   day-night cycle
      * @return a {@link GameObject} representing the night overlay
      */
     public static GameObject create(Vector2 windowDimensions, float cycleLength) {
