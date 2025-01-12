@@ -19,11 +19,13 @@ import java.util.List;
  *
  * <p>Includes a set of {@link JumpObserver} objects to notify when a jump occurs.</p>
  *
- * @author
- *     Joshua Kolodny, Itamar Lev Ari
+ * @author Joshua Kolodny, Itamar Lev Ari
  */
 public class Avatar extends GameObject {
     // Constants
+    /**
+     * The default size of the avatar in the game, represented as a square with side lengths of 45 units.
+     */
     public static final Vector2 SIZE = Vector2.ONES.mult(45);
     private static final float VELOCITY_X = 400;
     private static final float VELOCITY_Y = -650;
@@ -69,9 +71,9 @@ public class Avatar extends GameObject {
     /**
      * Constructs an avatar with position, user input listener, and image reading capabilities.
      *
-     * @param topLeftCorner  Initial avatar location.
-     * @param inputListener  Provides keyboard and mouse inputs.
-     * @param imageReader    Loads images for animations.
+     * @param topLeftCorner Initial avatar location.
+     * @param inputListener Provides keyboard and mouse inputs.
+     * @param imageReader   Loads images for animations.
      */
     public Avatar(Vector2 topLeftCorner, UserInputListener inputListener, ImageReader imageReader) {
         super(topLeftCorner, SIZE, imageReader.readImage(AVATAR_IMAGE, true));

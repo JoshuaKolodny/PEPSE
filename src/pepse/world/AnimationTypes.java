@@ -16,7 +16,18 @@ package pepse.world;
  *     Joshua Kolodny, Itamar Lev Ari
  */
 public enum AnimationTypes {
+    /**
+     * The object is idle with no movement.
+     */
     STILL,
+
+    /**
+     * The object is in a running state, typically involving horizontal movement.
+     */
     RUNNING,
+
+    /**
+     * The object is in a jumping state, typically involving vertical movement.
+     */
     JUMPING
 }

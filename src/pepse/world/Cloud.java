@@ -74,7 +74,8 @@ public class Cloud implements JumpObserver {
                 if (cloud[i][j] == 1) {
                     Vector2 blockLocation = new Vector2(INIT_LOCATION.x() + j * Block.SIZE,
                             INIT_LOCATION.y() + i * Block.SIZE);
-                    Renderable renderable = new RectangleRenderable(ColorSupplier.approximateMonoColor(BASE_CLOUD_COLOR));
+                    Renderable renderable = new RectangleRenderable(ColorSupplier
+                            .approximateMonoColor(BASE_CLOUD_COLOR));
                     Block cloudBlock = new Block(blockLocation, renderable);
                     Consumer<Float> lambdaCloud = (Float shiftRight) ->
                             cloudBlock.setCenter(blockLocation.add(Vector2.RIGHT.mult(shiftRight)));
