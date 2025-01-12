@@ -199,7 +199,24 @@ public class PepseGameManager extends GameManager {
         float avatarX = avatar.getTopLeftCorner().x();
         int avatarChunkIndex = ChunkManager.worldToChunkIndex(avatarX);
 
-        // Load new chunks if the avatar has moved beyond current boundaries
+        loadNewChunks(avatarChunkIndex);
+
+        // Identify and unload chunks beyond the desired range
+        int desiredMin = avatarChunkIndex - CHUNK_RENDER_DISTANCE;
+        int desiredMax = avatarChunkIndex + CHUNK_RENDER_DISTANCE;
+        removeChunksFromGame(desiredMin, desiredMax);
+
+        // Update chunk boundaries
+        minChunkIndexLoaded = desiredMin;
+        maxChunkIndexLoaded = desiredMax;
+    }
+
+    /**
+     * Loads new chunks around the avatar's current position if it moves beyond the current boundaries.
+     *
+     * @param avatarChunkIndex The chunk index where the avatar is currently located.
+     */
+    private void loadNewChunks(int avatarChunkIndex) {
         while (avatarChunkIndex - CHUNK_RENDER_DISTANCE < minChunkIndexLoaded) {
             minChunkIndexLoaded--;
             chunkManager.loadChunks(minChunkIndexLoaded, minChunkIndexLoaded, gameObjects());
@@ -208,13 +225,17 @@ public class PepseGameManager extends GameManager {
             maxChunkIndexLoaded++;
             chunkManager.loadChunks(maxChunkIndexLoaded, maxChunkIndexLoaded, gameObjects());
         }
+    }
 
-        // Identify and unload chunks beyond the desired range
-        int desiredMin = avatarChunkIndex - CHUNK_RENDER_DISTANCE;
-        int desiredMax = avatarChunkIndex + CHUNK_RENDER_DISTANCE;
+    /**
+     * Removes chunks outside the desired range from the game.
+     *
+     * @param desiredMin The minimum chunk index to keep.
+     * @param desiredMax The maximum chunk index to keep.
+     */
+    private void removeChunksFromGame(int desiredMin, int desiredMax) {
         Set<Integer> chunksToRemove = chunkManager.findChunksOutsideRange(desiredMin, desiredMax);
 
-        // Remove them from the game
         for (int chunkIndex : chunksToRemove) {
             Map<GameObject, Integer> chunkObjects = chunkManager.popChunk(chunkIndex);
             if (chunkObjects != null) {
@@ -223,11 +244,8 @@ public class PepseGameManager extends GameManager {
                 }
             }
         }
-
-        // Update chunk boundaries
-        minChunkIndexLoaded = desiredMin;
-        maxChunkIndexLoaded = desiredMax;
     }
+
 
     /**
      * Creates raindrops below cloud blocks. Raindrops disappear after a short transition.

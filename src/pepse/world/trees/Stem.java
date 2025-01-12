@@ -72,8 +72,10 @@ public class Stem {
      */
     private void createBlocks() {
         for (int i = 0; i < stemBlocks.length; i++) {
-            stemBlocks[i] = new Block(new Vector2(topLeftCorner.x(),
+            Block stemBlock = new Block(new Vector2(topLeftCorner.x(),
                     topLeftCorner.y() + i * Block.SIZE), renderable);
+            stemBlock.setTag(Constants.STEM_TAG);
+            stemBlocks[i] = stemBlock;
         }
     }
 

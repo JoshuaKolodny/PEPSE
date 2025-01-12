@@ -88,9 +88,13 @@ public class Terrain {
     private List<Block> addAllInColumn(int currentX, int currentY) {
         List<Block> columnBlockList = new ArrayList<>();
         int countBlocks = TERRAIN_DEPTH - (currentY / Block.SIZE);
-
-        for (int i = 0; i < countBlocks; i++) {
-            Renderable renderable = new RectangleRenderable(ColorSupplier
+        Renderable renderable = new RectangleRenderable(ColorSupplier
+                .approximateColor(BASE_GROUND_COLOR));
+        Block topBlock = new Block(new Vector2(currentX, currentY), renderable);
+        topBlock.setTag(Constants.TOP_BLOCK_TAG);
+        columnBlockList.add(topBlock);
+        for (int i = 1; i < countBlocks; i++) {
+            renderable = new RectangleRenderable(ColorSupplier
                     .approximateColor(BASE_GROUND_COLOR));
             Block block = new Block(new Vector2(currentX, (currentY + i * Block.SIZE)), renderable);
             columnBlockList.add(block);

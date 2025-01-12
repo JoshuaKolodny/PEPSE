@@ -5,6 +5,8 @@ public class Constants {
     public static final String BLOCK_TAG = "block";
     public static final String FRUIT_TAG = "fruit";
     public static final String AVATAR_TAG = "avatar";
+    public static final String TOP_BLOCK_TAG = "topBlock";
+    public static final String STEM_TAG = "stem";
     public static final int CYCLE_LENGTH = 30;
     public static final int AVATAR_START_X_POSITION = 660;
 

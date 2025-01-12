@@ -35,7 +35,6 @@ public class Avatar extends GameObject {
     private static final float MAX_ENERGY = 100;
     private static final float MOVE_REDUCTION = -0.3f;
     private static final float JUMP_REDUCTION = -10;
-    private static final float MIN_ENERGY_TO_MOVE = 5;
     private static final float RESTING_ENERGY = 0.5f;
 
     // Animation
@@ -89,12 +88,24 @@ public class Avatar extends GameObject {
     }
 
     /**
+     * Returns {@code false} if the other object's tag is {@code Constants.BLOCK_TAG},
+     * otherwise delegates to the superclass.
+     */
+    @Override
+    public boolean shouldCollideWith(GameObject other) {
+        if (other.getTag().equals(Constants.BLOCK_TAG)){
+            return false;
+        }
+        return super.shouldCollideWith(other);
+    }
+
+    /**
      * Handles collisions with blocks (resets vertical velocity) and fruits (increases energy).
      */
     @Override
     public void onCollisionEnter(GameObject other, Collision collision) {
         super.onCollisionEnter(other, collision);
-        if (other.getTag().equals(Constants.BLOCK_TAG)) {
+        if (other.getTag().equals(Constants.TOP_BLOCK_TAG)) {
             this.transform().setVelocityY(0);
         } else if (other.getTag().equals(Constants.FRUIT_TAG)) {
             updateEnergy(FRUIT_ENERGY);
@@ -128,8 +139,8 @@ public class Avatar extends GameObject {
     private void handleHorizontalMovement() {
         float xVel = 0;
 
-        boolean movingLeft = inputListener.isKeyPressed(KeyEvent.VK_LEFT) && energy >= MIN_ENERGY_TO_MOVE;
-        boolean movingRight = inputListener.isKeyPressed(KeyEvent.VK_RIGHT) && energy >= MIN_ENERGY_TO_MOVE;
+        boolean movingLeft = inputListener.isKeyPressed(KeyEvent.VK_LEFT) && energy > 0;
+        boolean movingRight = inputListener.isKeyPressed(KeyEvent.VK_RIGHT) && energy > 0;
 
         if (movingLeft) {
             xVel -= VELOCITY_X;
